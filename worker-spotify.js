@@ -47,36 +47,45 @@ export default {
 
     console.log('Now Playing Status:', nowPlayingResponse.status);
 
-    // Get currently playing
+    // Get currently playing or paused
     if (nowPlayingResponse.status === 200) {
       const song = await nowPlayingResponse.json();
       if (song.item) {
-        currentTrack = {
-          isPlaying: song.is_playing,
+        const trackData = {
           title: song.item.name,
           artist: song.item.artists.map((artist) => artist.name).join(', '),
           album: song.item.album.name,
           albumImageUrl: song.item.album.images[0].url,
           songUrl: song.item.external_urls.spotify,
         };
+
+        if (song.is_playing) {
+          // Actively playing - show as current track
+          currentTrack = { ...trackData, isPlaying: true };
+        } else {
+          // Paused - show as last played
+          lastPlayed = trackData;
+        }
       }
     }
 
-    // Get recently played
-    const recentlyPlayedResponse = await getRecentlyPlayed(access_token);
-    console.log('Recently Played Status:', recentlyPlayedResponse.status);
-    if (recentlyPlayedResponse.status === 200) {
-      const recent = await recentlyPlayedResponse.json();
-      if (recent.items && recent.items.length > 0) {
-        const track = recent.items[0].track;
-        lastPlayed = {
-          title: track.name,
-          artist: track.artists.map((artist) => artist.name).join(', '),
-          album: track.album.name,
-          albumImageUrl: track.album.images[0].url,
-          songUrl: track.external_urls.spotify,
-          playedAt: recent.items[0].played_at,
-        };
+    // If no paused track, get recently played
+    if (!lastPlayed) {
+      const recentlyPlayedResponse = await getRecentlyPlayed(access_token);
+      console.log('Recently Played Status:', recentlyPlayedResponse.status);
+      if (recentlyPlayedResponse.status === 200) {
+        const recent = await recentlyPlayedResponse.json();
+        if (recent.items && recent.items.length > 0) {
+          const track = recent.items[0].track;
+          lastPlayed = {
+            title: track.name,
+            artist: track.artists.map((artist) => artist.name).join(', '),
+            album: track.album.name,
+            albumImageUrl: track.album.images[0].url,
+            songUrl: track.external_urls.spotify,
+            playedAt: recent.items[0].played_at,
+          };
+        }
       }
     }
 
