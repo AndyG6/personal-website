@@ -54,9 +54,11 @@ I focus on mobile app development using Swift and React Native, crafting experie
             {/* Profile Image - Right Side */}
             <div className="order-1 lg:order-2">
               <div className="aspect-square rounded-lg overflow-hidden bg-dark-card border border-gray-border w-full">
-                <div className="w-full h-full flex items-center justify-center text-gray-text">
-                  <span className="text-8xl">👨‍💻</span>
-                </div>
+                <img 
+                  src="/images/profile.jpg" 
+                  alt="Andy Guo" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </motion.div>

@@ -10,7 +10,7 @@ const Navbar = () => {
   const navigation = [
     { name: 'linkedin', href: 'https://www.linkedin.com/in/andy-guo-3ba794283/', external: true },
     { name: 'github', href: 'https://github.com/AndyG6', external: true },
-    { name: 'resume', href: '#resume', external: false },
+    { name: 'resume', href: '/images/resume.pdf', external: true },
     { name: 'about', href: '/about', external: false },
     { name: 'projects', href: '/projects', external: false },
   ];
