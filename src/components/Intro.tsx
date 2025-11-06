@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import SpotifyNowPlaying from './SpotifyNowPlaying';
 
 const Intro = () => {
   return (
@@ -41,14 +42,7 @@ I focus on mobile app development using Swift and React Native, crafting experie
               </div>
 
               {/* Spotify Widget */}
-              <div className="card">
-                <h3 className="text-lg font-semibold font-heading mb-3">currently listening to</h3>
-                <div className="bg-dark-lighter rounded-lg p-6 border border-gray-border">
-                  <p className="text-gray-text text-sm">
-                    [TODO: spotify widget will go here]
-                  </p>
-                </div>
-              </div>
+              <SpotifyNowPlaying />
             </div>
 
             {/* Profile Image - Right Side */}
