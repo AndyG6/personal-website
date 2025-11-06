@@ -45,6 +45,8 @@ export default {
     let currentTrack = null;
     let lastPlayed = null;
 
+    console.log('Now Playing Status:', nowPlayingResponse.status);
+
     // Get currently playing
     if (nowPlayingResponse.status === 200) {
       const song = await nowPlayingResponse.json();
@@ -62,6 +64,7 @@ export default {
 
     // Get recently played
     const recentlyPlayedResponse = await getRecentlyPlayed(access_token);
+    console.log('Recently Played Status:', recentlyPlayedResponse.status);
     if (recentlyPlayedResponse.status === 200) {
       const recent = await recentlyPlayedResponse.json();
       if (recent.items && recent.items.length > 0) {

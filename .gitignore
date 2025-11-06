@@ -27,3 +27,5 @@ dist-ssr
 get-spotify-token.js
 .env
 .env.local
+.dev.vars
+worker-spotify.js
