@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/spotify': {
-        target: 'https://9dd47568.v2-personal-website.pages.dev',
+        target: process.env.SPOTIFY_API_URL || 'https://9dd47568.v2-personal-website.pages.dev',
         changeOrigin: true,
       },
     },
