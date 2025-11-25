@@ -24,7 +24,7 @@ const SpotifyNowPlaying = () => {
   useEffect(() => {
     const fetchNowPlaying = async () => {
       try {
-        const response = await fetch('https://spotify-personal-website.zeyuguo2006.workers.dev');
+        const response = await fetch('/spotify');
         const result = await response.json();
         setData(result);
       } catch (error) {
