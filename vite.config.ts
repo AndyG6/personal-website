@@ -5,9 +5,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    proxy: {
+    proxy: process.env.DISABLE_PROXY ? {} : {
       '/spotify': {
-        target: process.env.SPOTIFY_API_URL || 'https://9dd47568.v2-personal-website.pages.dev',
+        target: 'https://9dd47568.v2-personal-website.pages.dev',
         changeOrigin: true,
       },
     },

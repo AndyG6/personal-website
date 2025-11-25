@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:local": "SPOTIFY_API_URL=http://localhost:8788 wrangler pages dev --port 8788 --proxy 5173 -- npm run dev",
+    "dev:local": "DISABLE_PROXY=true wrangler pages dev --port 8788 --proxy 5173 -- npm run dev",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
