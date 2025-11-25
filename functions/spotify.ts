@@ -91,11 +91,13 @@ interface Env {
     return new Response(
       JSON.stringify({
         isPlaying,
-        title,
-        artist,
-        album,
-        albumImageUrl,
-        songUrl,
+        currentTrack: {
+          title,
+          artist,
+          album,
+          albumImageUrl,
+          songUrl,
+        },
       }),
       {
         status: 200,
