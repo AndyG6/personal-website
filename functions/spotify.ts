@@ -8,6 +8,7 @@ interface Env {
     btoa(`${clientId}:${clientSecret}`);
   
   const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
+  const RECENTLY_PLAYED_ENDPOINT = 'https://api.spotify.com/v1/me/player/recently-played?limit=1';
   const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
   
   const getAccessToken = async (env: Env) => {
@@ -31,73 +32,88 @@ interface Env {
     return data;
   };
   
-  const getNowPlaying = async (env: Env) => {
-    const { access_token } = await getAccessToken(env);
-    
+  const getNowPlaying = async (accessToken: string) => {
     console.log('🎵 Fetching now playing...');
-  
+
     return fetch(NOW_PLAYING_ENDPOINT, {
       headers: {
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  };
+
+  const getRecentlyPlayed = async (accessToken: string) => {
+    console.log('🕒 Fetching recently played...');
+
+    return fetch(RECENTLY_PLAYED_ENDPOINT, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
       },
     });
   };
   
   export const onRequest: PagesFunction<Env> = async (context) => {
     console.log('📨 Request received');
-    
-    const response = await getNowPlaying(context.env);
-    
-    console.log(`📊 Response status: ${response.status}`);
-  
-    if (response.status === 204 || response.status > 400) {
-      console.log('⏸️  Not playing or error status');
-      return new Response(JSON.stringify({ isPlaying: false }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
+
+    const { access_token } = await getAccessToken(context.env);
+    const nowPlayingResponse = await getNowPlaying(access_token);
+
+    console.log(`📊 Now Playing status: ${nowPlayingResponse.status}`);
+
+    let currentTrack = null;
+    let lastPlayed = null;
+
+    // Get currently playing or paused
+    if (nowPlayingResponse.status === 200) {
+      const song = await nowPlayingResponse.json();
+      if (song.item) {
+        const trackData = {
+          title: song.item.name,
+          artist: song.item.artists.map((artist: any) => artist.name).join(', '),
+          album: song.item.album.name,
+          albumImageUrl: song.item.album.images[0].url,
+          songUrl: song.item.external_urls.spotify,
+        };
+
+        if (song.is_playing) {
+          // Actively playing - show as current track
+          console.log('🎶 Currently playing:', trackData.title);
+          currentTrack = { ...trackData, isPlaying: true };
+        } else {
+          // Paused - show as last played
+          console.log('⏸️  Paused:', trackData.title);
+          lastPlayed = trackData;
+        }
+      }
     }
-  
-    const song = await response.json();
-  
-    if (song.item === null) {
-      console.log('⏸️  No song item found');
-      return new Response(JSON.stringify({ isPlaying: false }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
+
+    // If no paused track, get recently played
+    if (!lastPlayed) {
+      const recentlyPlayedResponse = await getRecentlyPlayed(access_token);
+      console.log(`📊 Recently Played status: ${recentlyPlayedResponse.status}`);
+
+      if (recentlyPlayedResponse.status === 200) {
+        const recent = await recentlyPlayedResponse.json();
+        if (recent.items && recent.items.length > 0) {
+          const track = recent.items[0].track;
+          lastPlayed = {
+            title: track.name,
+            artist: track.artists.map((artist: any) => artist.name).join(', '),
+            album: track.album.name,
+            albumImageUrl: track.album.images[0].url,
+            songUrl: track.external_urls.spotify,
+            playedAt: recent.items[0].played_at,
+          };
+          console.log('🕒 Last played:', lastPlayed.title);
+        }
+      }
     }
-  
-    const isPlaying = song.is_playing;
-    const title = song.item.name;
-    const artist = song.item.artists.map((artist: any) => artist.name).join(', ');
-    const album = song.item.album.name;
-    const albumImageUrl = song.item.album.images[0].url;
-    const songUrl = song.item.external_urls.spotify;
-  
-    console.log('🎶 Now playing:', {
-      title,
-      artist,
-      album,
-      isPlaying,
-    });
-  
+
     return new Response(
       JSON.stringify({
-        isPlaying,
-        currentTrack: {
-          title,
-          artist,
-          album,
-          albumImageUrl,
-          songUrl,
-        },
+        isPlaying: currentTrack?.isPlaying || false,
+        currentTrack: currentTrack,
+        lastPlayed: lastPlayed,
       }),
       {
         status: 200,
