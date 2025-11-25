@@ -2,7 +2,6 @@ interface Env {
     SPOTIFY_CLIENT_ID: string;
     SPOTIFY_CLIENT_SECRET: string;
     SPOTIFY_REFRESH_TOKEN: string;
-    SPOTIFY_CACHE: KVNamespace;
   }
   
   const basic = (clientId: string, clientSecret: string) =>
@@ -10,7 +9,6 @@ interface Env {
   
   const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
   const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
-  const CACHE_KEY = 'last_played_track';
   
   const getAccessToken = async (env: Env) => {
     console.log('🔑 Fetching access token...');
@@ -47,55 +45,58 @@ interface Env {
     console.log('📨 Request received');
 
     const { access_token } = await getAccessToken(context.env);
-    const nowPlayingResponse = await getNowPlaying(access_token);
+    const response = await getNowPlaying(access_token);
 
-    console.log(`📊 Now Playing status: ${nowPlayingResponse.status}`);
+    console.log(`📊 Response status: ${response.status}`);
 
-    let currentTrack = null;
-    let lastPlayed = null;
-
-    // Get currently playing or paused
-    if (nowPlayingResponse.status === 200) {
-      const song = await nowPlayingResponse.json();
-      if (song.item) {
-        const trackData = {
-          title: song.item.name,
-          artist: song.item.artists.map((artist: any) => artist.name).join(', '),
-          album: song.item.album.name,
-          albumImageUrl: song.item.album.images[0].url,
-          songUrl: song.item.external_urls.spotify,
-        };
-
-        if (song.is_playing) {
-          // Actively playing - show as current track and cache it
-          console.log('🎶 Currently playing:', trackData.title);
-          currentTrack = { ...trackData, isPlaying: true };
-
-          // Cache the currently playing track
-          await context.env.SPOTIFY_CACHE.put(CACHE_KEY, JSON.stringify(trackData));
-          console.log('💾 Cached track:', trackData.title);
-        } else {
-          // Paused - show as last played
-          console.log('⏸️  Paused:', trackData.title);
-          lastPlayed = trackData;
-        }
-      }
+    if (response.status === 204 || response.status > 400) {
+      console.log('⏸️  Not playing or error status');
+      return new Response(JSON.stringify({ isPlaying: false }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
     }
 
-    // If nothing is playing/paused, get from cache
-    if (!currentTrack && !lastPlayed) {
-      const cachedTrack = await context.env.SPOTIFY_CACHE.get(CACHE_KEY);
-      if (cachedTrack) {
-        lastPlayed = JSON.parse(cachedTrack);
-        console.log('📦 Retrieved from cache:', lastPlayed.title);
-      }
+    const song = await response.json();
+
+    if (song.item === null) {
+      console.log('⏸️  No song item found');
+      return new Response(JSON.stringify({ isPlaying: false }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
     }
+
+    const isPlaying = song.is_playing;
+    const title = song.item.name;
+    const artist = song.item.artists.map((artist: any) => artist.name).join(', ');
+    const album = song.item.album.name;
+    const albumImageUrl = song.item.album.images[0].url;
+    const songUrl = song.item.external_urls.spotify;
+
+    console.log('🎶 Now playing:', {
+      title,
+      artist,
+      album,
+      isPlaying,
+    });
 
     return new Response(
       JSON.stringify({
-        isPlaying: currentTrack?.isPlaying || false,
-        currentTrack: currentTrack,
-        lastPlayed: lastPlayed,
+        isPlaying,
+        currentTrack: {
+          title,
+          artist,
+          album,
+          albumImageUrl,
+          songUrl,
+        },
       }),
       {
         status: 200,

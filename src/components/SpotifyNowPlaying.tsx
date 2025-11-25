@@ -14,12 +14,26 @@ interface Track {
 interface SpotifyData {
   isPlaying: boolean;
   currentTrack?: Track;
-  lastPlayed?: Track;
 }
+
+const CACHE_KEY = 'spotify_last_played';
 
 const SpotifyNowPlaying = () => {
   const [data, setData] = useState<SpotifyData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastPlayed, setLastPlayed] = useState<Track | null>(null);
+
+  useEffect(() => {
+    // Load cached track from localStorage on mount
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      try {
+        setLastPlayed(JSON.parse(cached));
+      } catch (error) {
+        console.error('Error parsing cached track:', error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchNowPlaying = async () => {
@@ -27,6 +41,12 @@ const SpotifyNowPlaying = () => {
         const response = await fetch('/spotify');
         const result = await response.json();
         setData(result);
+
+        // If currently playing, cache it
+        if (result.isPlaying && result.currentTrack) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(result.currentTrack));
+          setLastPlayed(result.currentTrack);
+        }
       } catch (error) {
         console.error('Error fetching Spotify data:', error);
       } finally {
@@ -53,8 +73,8 @@ const SpotifyNowPlaying = () => {
   }
 
   // Show last played if not currently playing
-  if (!data?.isPlaying && data?.lastPlayed) {
-    const track = data.lastPlayed;
+  if (!data?.isPlaying && lastPlayed) {
+    const track = lastPlayed;
     return (
       <div className="card">
         <h3 className="text-lg font-semibold font-heading mb-3">last played</h3>
