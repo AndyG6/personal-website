@@ -2,14 +2,15 @@ interface Env {
     SPOTIFY_CLIENT_ID: string;
     SPOTIFY_CLIENT_SECRET: string;
     SPOTIFY_REFRESH_TOKEN: string;
+    SPOTIFY_CACHE: KVNamespace;
   }
   
   const basic = (clientId: string, clientSecret: string) =>
     btoa(`${clientId}:${clientSecret}`);
   
   const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
-  const RECENTLY_PLAYED_ENDPOINT = 'https://api.spotify.com/v1/me/player/recently-played?limit=1';
   const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
+  const CACHE_KEY = 'last_played_track';
   
   const getAccessToken = async (env: Env) => {
     console.log('🔑 Fetching access token...');
@@ -41,16 +42,6 @@ interface Env {
       },
     });
   };
-
-  const getRecentlyPlayed = async (accessToken: string) => {
-    console.log('🕒 Fetching recently played...');
-
-    return fetch(RECENTLY_PLAYED_ENDPOINT, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-  };
   
   export const onRequest: PagesFunction<Env> = async (context) => {
     console.log('📨 Request received');
@@ -76,9 +67,13 @@ interface Env {
         };
 
         if (song.is_playing) {
-          // Actively playing - show as current track
+          // Actively playing - show as current track and cache it
           console.log('🎶 Currently playing:', trackData.title);
           currentTrack = { ...trackData, isPlaying: true };
+
+          // Cache the currently playing track
+          await context.env.SPOTIFY_CACHE.put(CACHE_KEY, JSON.stringify(trackData));
+          console.log('💾 Cached track:', trackData.title);
         } else {
           // Paused - show as last played
           console.log('⏸️  Paused:', trackData.title);
@@ -87,25 +82,12 @@ interface Env {
       }
     }
 
-    // If no paused track, get recently played
-    if (!lastPlayed) {
-      const recentlyPlayedResponse = await getRecentlyPlayed(access_token);
-      console.log(`📊 Recently Played status: ${recentlyPlayedResponse.status}`);
-
-      if (recentlyPlayedResponse.status === 200) {
-        const recent = await recentlyPlayedResponse.json();
-        if (recent.items && recent.items.length > 0) {
-          const track = recent.items[0].track;
-          lastPlayed = {
-            title: track.name,
-            artist: track.artists.map((artist: any) => artist.name).join(', '),
-            album: track.album.name,
-            albumImageUrl: track.album.images[0].url,
-            songUrl: track.external_urls.spotify,
-            playedAt: recent.items[0].played_at,
-          };
-          console.log('🕒 Last played:', lastPlayed.title);
-        }
+    // If nothing is playing/paused, get from cache
+    if (!currentTrack && !lastPlayed) {
+      const cachedTrack = await context.env.SPOTIFY_CACHE.get(CACHE_KEY);
+      if (cachedTrack) {
+        lastPlayed = JSON.parse(cachedTrack);
+        console.log('📦 Retrieved from cache:', lastPlayed.title);
       }
     }
 

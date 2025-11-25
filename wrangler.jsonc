@@ -3,5 +3,11 @@
   "compatibility_date": "2025-11-06",
   "assets": {
     "directory": "./dist"
-  }
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SPOTIFY_CACHE",
+      "id": "placeholder"
+    }
+  ]
 }
