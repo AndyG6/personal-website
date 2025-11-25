@@ -38,7 +38,9 @@ const SpotifyNowPlaying = () => {
   useEffect(() => {
     const fetchNowPlaying = async () => {
       try {
+        console.log('🎵 Fetching from /spotify endpoint...');
         const response = await fetch('/spotify');
+        console.log('✅ Response received:', response.status);
         const result = await response.json();
         setData(result);
 
