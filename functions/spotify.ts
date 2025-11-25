@@ -31,25 +31,24 @@ interface Env {
     return data;
   };
   
-  const getNowPlaying = async (env: Env) => {
-    const { access_token } = await getAccessToken(env);
-    
+  const getNowPlaying = async (accessToken: string) => {
     console.log('🎵 Fetching now playing...');
-  
+
     return fetch(NOW_PLAYING_ENDPOINT, {
       headers: {
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
   };
   
   export const onRequest: PagesFunction<Env> = async (context) => {
     console.log('📨 Request received');
-    
-    const response = await getNowPlaying(context.env);
-    
+
+    const { access_token } = await getAccessToken(context.env);
+    const response = await getNowPlaying(access_token);
+
     console.log(`📊 Response status: ${response.status}`);
-  
+
     if (response.status === 204 || response.status > 400) {
       console.log('⏸️  Not playing or error status');
       return new Response(JSON.stringify({ isPlaying: false }), {
@@ -60,9 +59,9 @@ interface Env {
         },
       });
     }
-  
+
     const song = await response.json();
-  
+
     if (song.item === null) {
       console.log('⏸️  No song item found');
       return new Response(JSON.stringify({ isPlaying: false }), {
@@ -73,21 +72,21 @@ interface Env {
         },
       });
     }
-  
+
     const isPlaying = song.is_playing;
     const title = song.item.name;
     const artist = song.item.artists.map((artist: any) => artist.name).join(', ');
     const album = song.item.album.name;
     const albumImageUrl = song.item.album.images[0].url;
     const songUrl = song.item.external_urls.spotify;
-  
+
     console.log('🎶 Now playing:', {
       title,
       artist,
       album,
       isPlaying,
     });
-  
+
     return new Response(
       JSON.stringify({
         isPlaying,
