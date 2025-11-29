@@ -3,15 +3,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Open+Sans:wght@300;400;500;600;700&display=swap');
 
 @theme {
-  --color-primary: #FFFFFF;
+  --color-netflix-red: #E50914;
+  --color-netflix-red-dark: #B20710;
+  --color-primary: #E50914;
   --color-secondary: #E5E5E5;
-  --color-dark: #0A0A0A;
-  --color-dark-lighter: #1A1A1A;
-  --color-dark-card: #141414;
+  --color-dark: #141414;
+  --color-dark-lighter: #1F1F1F;
+  --color-dark-card: #181818;
   --color-light: #F5F5F5;
-  --color-gray-text: #B0B0B0;
+  --color-gray-text: #D2D2D2;
   --color-gray-border: #2A2A2A;
-  
+
   --font-family-sans: 'Open Sans', sans-serif;
   --font-family-heading: 'Inter', sans-serif;
 }
@@ -136,12 +138,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  background-color: var(--color-primary);
-  color: var(--color-dark);
+  background-color: var(--color-netflix-red);
+  color: white;
+  font-weight: 600;
 }
 
 .btn-primary:hover {
-  background-color: var(--color-secondary);
+  background-color: var(--color-netflix-red-dark);
 }
 
 .btn-outline {
@@ -177,5 +180,41 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .card:hover {
-  border-color: rgba(255, 140, 66, 0.5);
+  border-color: rgba(229, 9, 20, 0.5);
+}
+
+/* Netflix-style carousel */
+.netflix-carousel {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.netflix-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.netflix-card {
+  transition: transform 0.3s ease, z-index 0s 0.3s;
+  cursor: pointer;
+}
+
+.netflix-card:hover {
+  transform: scale(1.1);
+  z-index: 10;
+  transition: transform 0.3s ease, z-index 0s 0s;
+}
+
+.netflix-card-content {
+  transition: opacity 0.3s ease;
+}
+
+/* Featured banner gradient overlay */
+.hero-gradient {
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 20, 20, 0) 0%,
+    rgba(20, 20, 20, 0.8) 100%
+  );
 }

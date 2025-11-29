@@ -7,16 +7,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#FF8C42', // Orange accent like Michael's site
-        secondary: '#FFA500',
+        'netflix-red': {
+          DEFAULT: '#E50914',
+          dark: '#B20710',
+        },
+        primary: '#E50914', // Netflix red
+        secondary: '#E5E5E5',
         dark: {
-          DEFAULT: '#0A0A0A', // Very dark background like Nathan's
-          lighter: '#1A1A1A',
-          card: '#141414',
+          DEFAULT: '#141414', // Netflix dark background
+          lighter: '#1F1F1F',
+          card: '#181818',
         },
         light: '#F5F5F5',
         gray: {
-          text: '#B0B0B0',
+          text: '#D2D2D2',
           border: '#2A2A2A',
         }
       },

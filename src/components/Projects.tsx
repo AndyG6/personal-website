@@ -1,6 +1,10 @@
 import { motion } from 'framer-motion';
+import Carousel from './Carousel';
+import ProjectCard from './ProjectCard';
+import type { Project } from './ProjectCard';
+import FeaturedProject from './FeaturedProject';
 
-const projects = [
+const projects: Project[] = [
   {
     title: 'Pay me Back!',
     subtitle: 'iOS trip expense splitter',
@@ -12,6 +16,7 @@ const projects = [
       'Built and consumed RESTful APIs with asynchronous request handling, ensuring reliable data synchronization between client and backend.',
       'Integrated SQLite for local persistence, enabling 100% offline functionality, with automatic two-way sync to backend tested across 10+ network conditions and edge cases.',
     ],
+    category: 'Mobile',
   },
   {
     title: 'Nina AI',
@@ -25,6 +30,7 @@ const projects = [
       'Engineered a FastAPI backend integrated with SQL database for structured note storage, metadata retrieval, and contextual queries.',
       'Leveraged Vapi and Groq to reduce speech-to-text inference latency by 40%, allowing near real-time voice interaction at hackathon scale.',
     ],
+    category: 'AI/ML',
   },
   {
     title: 'AI Minecraft Companion',
@@ -37,89 +43,67 @@ const projects = [
       'Managed API key authentication and credit usage for external services, optimizing usage costs during testing.',
       'Implemented data persistence using a memory system with short-term context windows and long-term fact storage allowing the AI to consistently generate contextual responses.',
     ],
+    category: 'AI/ML',
   },
 ];
 
+// Group projects by category
+const categorizeProjects = (projects: Project[]) => {
+  const categories: Record<string, Project[]> = {};
+
+  projects.forEach(project => {
+    if (!categories[project.category]) {
+      categories[project.category] = [];
+    }
+    categories[project.category].push(project);
+  });
+
+  return categories;
+};
+
 const Projects = () => {
+  const categorizedProjects = categorizeProjects(projects);
+  const featuredProject = projects[0]; // Feature the first project
+
   return (
-    <section id="projects" className="py-32 bg-dark">
-      <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="section-title mb-12">
-            PROJECTS
-          </h2>
+    <section id="projects" className="bg-dark min-h-screen">
+      {/* Featured Project Banner */}
+      <FeaturedProject project={featuredProject} />
 
-          <div className="space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="py-8"
+      >
+        <h2 className="section-title mb-8 px-6 lg:px-12">
+          Browse Projects
+        </h2>
+
+        {/* Netflix-style carousels by category */}
+        <div className="space-y-8">
+          {Object.entries(categorizedProjects).map(([category, categoryProjects]) => (
+            <Carousel key={category} title={category}>
+              {categoryProjects.map((project, index) => (
+                <ProjectCard key={index} project={project} />
+              ))}
+            </Carousel>
+          ))}
+        </div>
+
+        {/* All Projects section for smaller screens or additional viewing */}
+        <div className="mt-16 px-6 lg:px-12">
+          <h3 className="text-xl font-bold font-heading mb-6 text-gray-text">
+            All Projects
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="card"
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Image Section */}
-                  <div className="lg:col-span-1">
-                    <div className="aspect-video rounded-lg overflow-hidden bg-dark-lighter border border-gray-border">
-                      {project.image ? (
-                        <img
-                          src={project.image}
-                          alt={project.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-text">
-                          <span className="text-4xl">📱</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Content Section */}
-                  <div className="lg:col-span-2">
-                    <div className="mb-4">
-                      <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-2">
-                        <div>
-                          <h3 className="text-2xl font-bold font-heading mb-1">
-                            {project.title}
-                            {project.subtitle && (
-                              <span className="text-gray-text font-normal text-lg ml-2">
-                                | {project.subtitle}
-                              </span>
-                            )}
-                          </h3>
-                          <p className="text-sm text-gray-text mb-2">
-                            {project.tech}
-                          </p>
-                        </div>
-                        <p className="text-sm text-gray-text uppercase tracking-wider mt-2 md:mt-0 whitespace-nowrap">
-                          {project.date}
-                        </p>
-                      </div>
-                    </div>
-
-                    <ul className="space-y-2">
-                      {project.description.map((point, i) => (
-                        <li key={i} className="text-gray-text flex">
-                          <span className="mr-3 text-white">•</span>
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </motion.div>
+              <ProjectCard key={index} project={project} />
             ))}
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </section>
   );
 };
